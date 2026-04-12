@@ -4,6 +4,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { OHLCV } from '@/lib/indicators';
 import { Signal, generateSignal, saveSignal, AssetClass, Timeframe } from '@/lib/signals';
+import { sendTelegramAlert } from '@/lib/telegram';
 import { useStore } from '@/lib/store';
 
 export function useSignals(
@@ -32,6 +33,19 @@ export function useSignals(
       setLatestSignal(signal);
       saveSignal(signal);
       addSignal(signal);
+
+      // Trigger Telegram Alert
+      sendTelegramAlert({
+        asset: signal.asset || symbol,
+        type: signal.type,
+        price: signal.price,
+        confidence: signal.confidence,
+        reason: signal.reason,
+        tp: signal.takeProfit,
+        sl: signal.stopLoss,
+        rr: signal.riskReward,
+        mtf: signal.mtfAgreement !== undefined ? { '15m': 'bullish', '1H': 'bullish', '4H': 'bearish' } : undefined
+      }).catch(console.error);
     }
 
     checkSignal(); // Initial check

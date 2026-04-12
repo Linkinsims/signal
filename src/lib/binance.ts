@@ -83,6 +83,23 @@ export async function fetch24hTickers(symbols?: string[]): Promise<Record<string
   return result;
 }
 
+// ─── Fetch Open Interest (Futures) ────────────────────────────────
+export async function fetchOpenInterest(symbol: string, period: '15m' | '1h' | '4h' | '1d' = '1h'): Promise<{ time: number; sumOpenInterest: number }[]> {
+  try {
+    // Note: Open interest is only available on futures API
+    const url = `https://fapi.binance.com/futures/data/openInterestHist?symbol=${symbol}&period=${period}&limit=50`;
+    const res = await fetch(url);
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.map((d: any) => ({
+      time: Math.floor(d.timestamp / 1000),
+      sumOpenInterest: parseFloat(d.sumOpenInterestValue)
+    }));
+  } catch {
+    return [];
+  }
+}
+
 // ─── WebSocket Manager ────────────────────────────────────────────
 export interface KlineUpdate {
   symbol: string;

@@ -6,20 +6,22 @@ const config: Config = {
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
+  darkMode: 'class',
   theme: {
     extend: {
       colors: {
-        primary: '#0A0A0A',
+        primary: 'var(--color-primary)',
         accent: '#2563EB',
         'accent-hover': '#1D4ED8',
         success: '#16A34A',
         danger: '#DC2626',
         warning: '#D97706',
-        surface: '#FFFFFF',
-        background: '#F8FAFC',
-        border: '#E2E8F0',
-        muted: '#64748B',
-        'muted-light': '#94A3B8',
+        surface: 'var(--color-surface)',
+        'surface-2': 'var(--color-surface-2)',
+        background: 'var(--color-background)',
+        border: 'var(--color-border)',
+        muted: 'var(--color-muted)',
+        'muted-light': 'var(--color-muted-light)',
       },
       fontFamily: {
         sans: ['var(--font-sans)', 'system-ui', 'sans-serif'],

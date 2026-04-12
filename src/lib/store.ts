@@ -6,7 +6,8 @@ import { Signal, AssetClass } from './signals';
 
 export type UserMode = 'beginner' | 'advanced';
 export type Currency = 'USD' | 'ZAR';
-export type ActiveTab = 'dashboard' | 'signals' | 'chart' | 'forecast' | 'portfolio';
+export type ThemeMode = 'light' | 'dark';
+export type ActiveTab = 'dashboard' | 'signals' | 'chart' | 'forecast' | 'portfolio' | 'watchlist' | 'backtester' | 'calendar' | 'settings';
 
 export interface PortfolioHolding {
   id: string;
@@ -25,10 +26,17 @@ export interface CustomAlert {
   createdAt: number;
 }
 
+export interface WatchlistItem {
+  symbol: string;
+  assetClass: AssetClass;
+  order: number;
+}
+
 interface AppState {
   // User preferences
   userMode: UserMode;
   currency: Currency;
+  theme: ThemeMode;
   usdZarRate: number;
   isLicensed: boolean;
   licenseKey: string;
@@ -43,6 +51,9 @@ interface AppState {
   // Portfolio
   portfolio: PortfolioHolding[];
 
+  // Watchlist
+  watchlist: WatchlistItem[];
+
   // Alerts
   customAlerts: CustomAlert[];
 
@@ -52,6 +63,8 @@ interface AppState {
   // Actions
   setUserMode: (mode: UserMode) => void;
   setCurrency: (currency: Currency) => void;
+  setTheme: (theme: ThemeMode) => void;
+  toggleTheme: () => void;
   setUsdZarRate: (rate: number) => void;
   setActiveTab: (tab: ActiveTab) => void;
   setLicensed: (licensed: boolean, key?: string) => void;
@@ -64,6 +77,12 @@ interface AppState {
   removeHolding: (id: string) => void;
   updateHolding: (id: string, updates: Partial<PortfolioHolding>) => void;
   setPortfolio: (holdings: PortfolioHolding[]) => void;
+
+  // Watchlist actions
+  addToWatchlist: (item: WatchlistItem) => void;
+  removeFromWatchlist: (symbol: string) => void;
+  reorderWatchlist: (items: WatchlistItem[]) => void;
+  setWatchlist: (items: WatchlistItem[]) => void;
 
   addAlert: (alert: CustomAlert) => void;
   removeAlert: (id: string) => void;
@@ -96,6 +115,7 @@ export const useStore = create<AppState>((set, get) => ({
   // Initial state
   userMode: 'beginner',
   currency: 'USD',
+  theme: 'light',
   usdZarRate: 18.5,
   isLicensed: false,
   licenseKey: '',
@@ -103,6 +123,7 @@ export const useStore = create<AppState>((set, get) => ({
   signals: [],
   signalFilter: 'all',
   portfolio: [],
+  watchlist: [],
   customAlerts: [],
   prices: {},
 
@@ -114,6 +135,18 @@ export const useStore = create<AppState>((set, get) => ({
   setCurrency: (currency) => {
     set({ currency });
     saveToStorage('currency', currency);
+  },
+  setTheme: (theme) => {
+    set({ theme });
+    saveToStorage('theme', theme);
+    if (typeof document !== 'undefined') {
+      document.documentElement.classList.toggle('dark', theme === 'dark');
+    }
+  },
+  toggleTheme: () => {
+    const current = get().theme;
+    const next = current === 'light' ? 'dark' : 'light';
+    get().setTheme(next);
   },
   setUsdZarRate: (rate) => set({ usdZarRate: rate }),
   setActiveTab: (tab) => set({ activeTab: tab }),
@@ -149,6 +182,25 @@ export const useStore = create<AppState>((set, get) => ({
   },
   setPortfolio: (holdings) => set({ portfolio: holdings }),
 
+  // Watchlist actions
+  addToWatchlist: (item) => {
+    const current = get().watchlist;
+    if (current.some(w => w.symbol === item.symbol)) return;
+    const updated = [...current, { ...item, order: current.length }];
+    set({ watchlist: updated });
+    saveToStorage('watchlist', updated);
+  },
+  removeFromWatchlist: (symbol) => {
+    const updated = get().watchlist.filter(w => w.symbol !== symbol);
+    set({ watchlist: updated });
+    saveToStorage('watchlist', updated);
+  },
+  reorderWatchlist: (items) => {
+    set({ watchlist: items });
+    saveToStorage('watchlist', items);
+  },
+  setWatchlist: (items) => set({ watchlist: items }),
+
   // Alert actions
   addAlert: (alert) => {
     const updated = [...get().customAlerts, alert];
@@ -183,6 +235,13 @@ export function initializeStore() {
   store.setCurrency(loadFromStorage('currency', 'USD'));
   store.setPortfolio(loadFromStorage('portfolio', []));
   store.setAlerts(loadFromStorage('custom_alerts', []));
+  store.setWatchlist(loadFromStorage('watchlist', []));
+
+  // Theme
+  const savedTheme = loadFromStorage<ThemeMode>('theme', 'light');
+  const systemDark = typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const theme = loadFromStorage<string>('theme', '') ? savedTheme : (systemDark ? 'dark' : 'light');
+  store.setTheme(theme);
 
   const key = loadFromStorage<string>('license_key', '');
   if (key) store.setLicensed(true, key);

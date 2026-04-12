@@ -54,11 +54,21 @@ export default function SignalCard({ signal, compact = false }: SignalCardProps)
     <div className="card animate-slide-up">
       {/* Header */}
       <div className="flex items-start justify-between mb-3">
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2.5 flex-wrap">
           <span className={badgeClass}>{signal.type}</span>
+          {signal.divergenceBadge && (
+            <span className="badge-watch bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 capitalize">
+              {signal.divergenceBadge}
+            </span>
+          )}
+          {signal.mtfAgreement !== undefined && signal.mtfAgreement >= 2 && (
+            <span className="badge-watch bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400">
+              MTF {signal.mtfAgreement}/3
+            </span>
+          )}
           <div>
-            <h3 className="text-base font-semibold text-primary">{signal.symbol}</h3>
-            <p className="text-xs text-muted">{signal.assetClass.toUpperCase()} · {signal.timeframe}</p>
+            <h3 className="text-base font-semibold text-primary">{signal.symbol || signal.asset}</h3>
+            <p className="text-xs text-muted">{(signal.assetClass || 'crypto').toUpperCase()} · {signal.timeframe}</p>
           </div>
         </div>
         <div className="text-right">
@@ -109,7 +119,7 @@ export default function SignalCard({ signal, compact = false }: SignalCardProps)
         <div className="mt-2 pt-2 border-t border-border/50">
           <p className="text-xs text-muted">
             Risk/Reward: <span className="font-mono font-medium text-primary">1:{signal.riskReward}</span>
-            {' · '}Confluence: <span className="font-mono font-medium text-primary">{signal.confluenceCount}/6</span>
+            {' · '}Confluence: <span className="font-mono font-medium text-primary">{signal.confluenceCount}/10</span>
           </p>
         </div>
       )}
