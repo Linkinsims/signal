@@ -3,6 +3,7 @@
 
 import React, { useEffect } from 'react';
 import { useStore } from '@/lib/store';
+import { UserButton } from '@clerk/nextjs';
 
 export default function Header() {
   const {
@@ -87,9 +88,14 @@ export default function Header() {
         </div>
 
         {/* Rate Display */}
-        <span className="text-xs font-mono text-muted hidden sm:inline">
+        <span className="text-xs font-mono text-muted hidden sm:inline mr-2">
           1 USD = {usdZarRate.toFixed(2)} ZAR
         </span>
+
+        {/* Clerk Profile / Logout */}
+        <div className="flex items-center pl-2 border-l border-border">
+          <UserButton afterSignOutUrl="/" />
+        </div>
       </div>
     </header>
   );
