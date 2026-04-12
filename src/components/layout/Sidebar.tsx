@@ -9,6 +9,7 @@ const NAV_ITEMS = [
   { href: '/app', label: 'Dashboard', icon: '⊞' },
   { href: '/app/signals', label: 'Signals', icon: '𝍖' },
   { href: '/app/chart/BTCUSDT', label: 'Charts', icon: '📈' },
+  { href: '/app/stocks', label: 'Stocks', icon: '🏛️' },
   { href: '/app/forecast', label: 'Forecast', icon: '◎' },
   { href: '/app/watchlist', label: 'Watchlist', icon: '★' },
   { href: '/app/backtester', label: 'Backtester', icon: '⏮' },
