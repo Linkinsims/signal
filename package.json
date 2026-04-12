@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.103.0",
     "geist": "^1.7.0",
     "jspdf": "^4.2.1",
     "lightweight-charts": "^4.2.2",

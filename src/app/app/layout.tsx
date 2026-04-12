@@ -8,22 +8,12 @@ import LiveTicker from '@/components/ui/LiveTicker';
 import { initializeStore, useStore } from '@/lib/store';
 import { getBinanceWSManager, DEFAULT_CRYPTO_SYMBOLS } from '@/lib/binance';
 
+import { supabase } from '@/lib/supabase';
+
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false);
   const { isLicensed, setLicensed } = useStore();
-  const [licenseInput, setLicenseInput] = useState('');
-
-  useEffect(() => {
-    initializeStore();
-    setMounted(true);
-
-    // Connect Binance WebSocket
-    const ws = getBinanceWSManager();
-    ws.connect(DEFAULT_CRYPTO_SYMBOLS, '1h');
-
-    return () => ws.cleanup();
-  }, []);
-
+  
   const [authView, setAuthView] = useState<'login' | 'signup' | 'forgot'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -31,35 +21,88 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [authLoading, setAuthLoading] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
 
+  useEffect(() => {
+    initializeStore();
+    setMounted(true);
+
+    // Watch Supabase Auth State
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        setLicensed(true, session.user.id);
+      }
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session) {
+        setLicensed(true, session.user.id);
+      } else {
+        setLicensed(false, ''); // Clear
+      }
+    });
+
+    // Connect Binance WebSocket
+    const ws = getBinanceWSManager();
+    ws.connect(DEFAULT_CRYPTO_SYMBOLS, '1h');
+
+    return () => {
+      ws.cleanup();
+      subscription.unsubscribe();
+    };
+  }, []);
+
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setAuthError('');
     setSuccessMsg('');
     setAuthLoading(true);
 
-    // Simulate network delay for realistic feel
-    await new Promise(r => setTimeout(r, 600));
-
-    if (authView === 'forgot') {
-      if (!email.includes('@')) {
-        setAuthError('Please enter a valid email address.');
-      } else {
-        setSuccessMsg('If an account exists, a reset link has been sent to your email.');
-        setTimeout(() => setAuthView('login'), 3000);
+    try {
+      if (authView === 'forgot') {
+        if (!email.includes('@')) {
+          setAuthError('Please enter a valid email address.');
+        } else {
+          const { error } = await supabase.auth.resetPasswordForEmail(email, {
+            redirectTo: window.location.origin + '/app',
+          });
+          if (error) throw error;
+          
+          setSuccessMsg('If an account exists, a reset link has been sent to your email.');
+          setTimeout(() => setAuthView('login'), 3000);
+        }
+        setAuthLoading(false);
+        return;
       }
-      setAuthLoading(false);
-      return;
-    }
 
-    if (!email.includes('@') || password.length < 6) {
-      setAuthError('Invalid email or password (must be at least 6 characters).');
-      setAuthLoading(false);
-      return;
-    }
+      if (!email.includes('@') || password.length < 6) {
+        setAuthError('Invalid email or password (must be at least 6 characters).');
+        setAuthLoading(false);
+        return;
+      }
 
-    // Mock successful login/signup and bind the session
-    setLicensed(true, `session_${Math.random().toString(36).substring(7)}`);
-    setAuthLoading(false);
+      if (authView === 'signup') {
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+        });
+        if (error) throw error;
+        if (data.user && data.session) {
+          setLicensed(true, data.user.id);
+        } else {
+          setSuccessMsg('Success! Please check your email to confirm your account.');
+        }
+      } else if (authView === 'login') {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email,
+          password
+        });
+        if (error) throw error;
+        setLicensed(true, data.user.id);
+      }
+    } catch (err: any) {
+      setAuthError(err.message || 'Authentication failed. Please try again.');
+    } finally {
+      setAuthLoading(false);
+    }
   };
 
   if (!mounted) {
