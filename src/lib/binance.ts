@@ -35,10 +35,9 @@ export async function fetchKlines(
     // Provide appropriate range to make sure we get enough candles relative to the selected interval
     const range = ['1m', '5m', '15m'].includes(yhInterval) ? '7d' : yhInterval === '60m' ? '1mo' : '1y';
     
-    // Add prefix caret back if it was stripped by UI tracking
-    const lookupSymbol = ['IXIC', 'DJI', 'GSPC'].includes(symbol) ? `^${symbol}` : symbol;
+    // Form internal URL to our API proxy
+    const url = `/api/stocks/chart?symbol=${symbol}&interval=${yhInterval}&range=${range}`;
 
-    const url = `https://query2.finance.yahoo.com/v8/finance/chart/${lookupSymbol}?interval=${yhInterval}&range=${range}`;
     const res = await fetch(url);
     if (!res.ok) throw new Error(`Failed to fetch Yahoo data for ${symbol}`);
     const data = await res.json();
