@@ -28,6 +28,47 @@ export async function fetchKlines(
   interval: IntervalType = '1h',
   limit: number = 500
 ): Promise<OHLCV[]> {
+  // If it's a Traditional Market (not a Crypto pair ending in USDT), intercept and fetch from Yahoo Finance V8!
+  if (!symbol.toUpperCase().endsWith('USDT')) {
+    // Map Binance intervals to closest Yahoo intervals
+    const yhInterval = interval === '1m' ? '1m' : interval === '5m' ? '5m' : interval === '15m' ? '15m' : interval === '1h' ? '60m' : '1d';
+    // Provide appropriate range to make sure we get enough candles relative to the selected interval
+    const range = ['1m', '5m', '15m'].includes(yhInterval) ? '7d' : yhInterval === '60m' ? '1mo' : '1y';
+    
+    // Add prefix caret back if it was stripped by UI tracking
+    const lookupSymbol = ['IXIC', 'DJI', 'GSPC'].includes(symbol) ? `^${symbol}` : symbol;
+
+    const url = `https://query2.finance.yahoo.com/v8/finance/chart/${lookupSymbol}?interval=${yhInterval}&range=${range}`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`Failed to fetch Yahoo data for ${symbol}`);
+    const data = await res.json();
+
+    const result = data.chart?.result?.[0];
+    if (!result || !result.timestamp) throw new Error(`Empty data returned from Yahoo for ${symbol}`);
+
+    const timestamps = result.timestamp;
+    const quotes = result.indicators.quote[0];
+    
+    const ohlcv: OHLCV[] = [];
+    for (let i = 0; i < timestamps.length; i++) {
+        // Yahoo sometimes returns nulls in sparse datasets
+        if (quotes.close[i] === null) continue;
+        
+        ohlcv.push({
+            time: timestamps[i],
+            open: quotes.open[i],
+            high: quotes.high[i],
+            low: quotes.low[i],
+            close: quotes.close[i],
+            volume: quotes.volume[i] || 0,
+        });
+    }
+
+    // Limit to requested amount, just like Binance
+    return ohlcv.slice(-limit);
+  }
+
+  // Fallback to strict Binance Crypto fetching
   const url = `${BINANCE_REST_BASE}/klines?symbol=${symbol}&interval=${interval}&limit=${limit}`;
   const res = await fetch(url);
   if (!res.ok) throw new Error(`Failed to fetch klines for ${symbol}`);

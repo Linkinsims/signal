@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useStore } from '@/lib/store';
+import Link from 'next/link';
 
 interface StockData {
   symbol: string;
@@ -111,37 +112,39 @@ export default function StocksPage() {
         {stocks.map((stock) => {
           const isPositive = stock.changePercent >= 0;
           return (
-            <div key={stock.symbol} className="card p-5 hover-card fade-in">
-              <div className="flex justify-between items-start mb-4">
-                <div>
-                  <h3 className="text-lg font-bold text-primary leading-tight">{stock.symbol.replace('^', '')}</h3>
-                  <p className="text-xs text-muted font-medium truncate max-w-[120px]" title={stock.shortName}>{stock.shortName}</p>
+            <Link key={stock.symbol} href={`/app/chart/${stock.symbol}`}>
+              <div className="card p-5 hover-card fade-in cursor-pointer h-full">
+                <div className="flex justify-between items-start mb-4">
+                  <div>
+                    <h3 className="text-lg font-bold text-primary leading-tight">{stock.symbol.replace('^', '')}</h3>
+                    <p className="text-xs text-muted font-medium truncate max-w-[120px]" title={stock.shortName}>{stock.shortName}</p>
+                  </div>
+                  <div className={`flex items-center gap-1 px-2 py-0.5 rounded text-xs font-bold ${isPositive ? 'bg-success/10 text-success' : 'bg-danger/10 text-danger'}`}>
+                    {isPositive ? '↑' : '↓'} {Math.abs(stock.changePercent || 0).toFixed(2)}%
+                  </div>
                 </div>
-                <div className={`flex items-center gap-1 px-2 py-0.5 rounded text-xs font-bold ${isPositive ? 'bg-success/10 text-success' : 'bg-danger/10 text-danger'}`}>
-                  {isPositive ? '↑' : '↓'} {Math.abs(stock.changePercent || 0).toFixed(2)}%
+                
+                <div className="mb-4">
+                  <span className="text-2xl font-mono font-bold text-primary tracking-tight">
+                    {formatPrice(stock.price)}
+                  </span>
+                  <p className={`text-xs font-mono mt-1 ${isPositive ? 'text-success' : 'text-danger'}`}>
+                    {isPositive ? '+' : ''}{(currency === 'ZAR' ? stock.change * usdZarRate : stock.change).toFixed(2)} Today
+                  </p>
                 </div>
-              </div>
-              
-              <div className="mb-4">
-                <span className="text-2xl font-mono font-bold text-primary tracking-tight">
-                  {formatPrice(stock.price)}
-                </span>
-                <p className={`text-xs font-mono mt-1 ${isPositive ? 'text-success' : 'text-danger'}`}>
-                  {isPositive ? '+' : ''}{(currency === 'ZAR' ? stock.change * usdZarRate : stock.change).toFixed(2)} Today
-                </p>
-              </div>
 
-              <div className="grid grid-cols-2 gap-2 pt-3 border-t border-border">
-                <div>
-                  <p className="text-[10px] text-muted uppercase tracking-wider mb-0.5">24h High</p>
-                  <p className="text-xs font-mono text-primary">{formatPrice(stock.high)}</p>
-                </div>
-                <div>
-                  <p className="text-[10px] text-muted uppercase tracking-wider mb-0.5">24h Low</p>
-                  <p className="text-xs font-mono text-primary">{formatPrice(stock.low)}</p>
+                <div className="grid grid-cols-2 gap-2 pt-3 border-t border-border">
+                  <div>
+                    <p className="text-[10px] text-muted uppercase tracking-wider mb-0.5">24h High</p>
+                    <p className="text-xs font-mono text-primary">{formatPrice(stock.high)}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-muted uppercase tracking-wider mb-0.5">24h Low</p>
+                    <p className="text-xs font-mono text-primary">{formatPrice(stock.low)}</p>
+                  </div>
                 </div>
               </div>
-            </div>
+            </Link>
           );
         })}
       </div>
