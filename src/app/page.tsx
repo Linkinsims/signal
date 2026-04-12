@@ -238,7 +238,7 @@ export default function LandingPage() {
           </div>
           <div className="grid md:grid-cols-3 gap-8">
             {[
-              { step: '01', title: 'No signup needed', desc: 'Just enter your license key. No account, no email, no tracking. Privacy by design.' },
+              { step: '01', title: 'Create an account', desc: 'Sign up securely. Your portfolio, settings, and watchlists are tied to your personal account.' },
               { step: '02', title: 'See live signals', desc: 'Confluence-based signals fire across Crypto, Stocks & Forex with entry, stop loss, and take profit levels.' },
               { step: '03', title: 'Trade smarter', desc: 'Use professional-grade analysis to make informed decisions. Track your portfolio, set alerts, and stay ahead.' },
             ].map((s) => (
@@ -311,14 +311,11 @@ export default function LandingPage() {
                   ))}
                 </ul>
                 <a
-                  href="https://your-shopify-store.myshopify.com/products/signal-lifetime"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="btn-primary w-full text-base !py-3"
+                  href="/app"
+                  className="btn-primary w-full text-base !py-3 flex items-center justify-center"
                 >
-                  Get Access Now
+                  Create Account
                 </a>
-                <p className="text-xs text-muted mt-3">Secure payment via Shopify</p>
               </div>
             </div>
           </div>
@@ -337,8 +334,8 @@ export default function LandingPage() {
               a: 'Our confluence engine fires signals only when 3 or more technical indicators agree. High-confluence signals (4+ indicators) have historically shown 70%+ directional accuracy. We cap confidence scores at 82% to reflect inherent market uncertainty.',
             },
             {
-              q: 'Do I need to create an account?',
-              a: 'No. SIGNAL is privacy-first — no login, no account, no email required. Just a license key that unlocks access. Your portfolio and settings are stored locally on your device.',
+              q: 'Is my data secure?',
+              a: 'Yes, absolutely. We use industry-standard encryption for your credentials, and your portfolio limits and configurations are safely stored in your account profile.',
             },
             {
               q: 'Where does the data come from?',

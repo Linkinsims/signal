@@ -256,29 +256,8 @@ export default function ChartPage() {
           });
         }
 
-        // ─── EMA 50 ───────────────────────────
-        if (ema50.length > 0) {
-          const s = chart.addLineSeries({ color: '#2563EB', lineWidth: 1, priceLineVisible: false, lastValueVisible: false });
-          const off = candles.length - ema50.length;
-          s.setData(ema50.map((v: number, i: number) => ({ time: candles[i + off].time as lc.Time, value: v })));
-        }
-
-        // ─── EMA 200 ──────────────────────────
-        if (ema200.length > 0) {
-          const s = chart.addLineSeries({ color: '#F97316', lineWidth: 1, priceLineVisible: false, lastValueVisible: false });
-          const off = candles.length - ema200.length;
-          s.setData(ema200.map((v: number, i: number) => ({ time: candles[i + off].time as lc.Time, value: v })));
-        }
-
-        // ─── BOLLINGER BANDS ──────────────────
-        const bb = calculateBollingerBands(closes);
-        if (bb.length > 0) {
-          const off = candles.length - bb.length;
-          const su = chart.addLineSeries({ color: 'rgba(148,163,184,0.4)', lineWidth: 1, priceLineVisible: false, lastValueVisible: false, lineStyle: lc.LineStyle.Dotted });
-          su.setData(bb.map((b, i) => ({ time: candles[i + off].time as lc.Time, value: b.upper })));
-          const sl = chart.addLineSeries({ color: 'rgba(148,163,184,0.4)', lineWidth: 1, priceLineVisible: false, lastValueVisible: false, lineStyle: lc.LineStyle.Dotted });
-          sl.setData(bb.map((b, i) => ({ time: candles[i + off].time as lc.Time, value: b.lower })));
-        }
+        // (EMAs and Bollinger Bands visual overlays have been removed for a cleaner chart interface,
+        // but their calculations are still running in the background for the Signal Engine)
 
         // ─── FORECAST ─────────────────────────
         if (candles.length >= 50) {
