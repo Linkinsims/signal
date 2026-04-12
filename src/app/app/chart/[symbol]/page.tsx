@@ -229,25 +229,32 @@ export default function ChartPage() {
           }))
         );
 
-        // Draw supply and demand lines using priceLines
-        z.forEach(zone => {
+        // Find the absolute closest Supply and Demand zones to the current price
+        const nearestSupply = z.filter(zone => zone.type === 'supply').sort((a, b) => Math.abs(a.bottom - cp) - Math.abs(b.bottom - cp))[0];
+        const nearestDemand = z.filter(zone => zone.type === 'demand').sort((a, b) => Math.abs(a.top - cp) - Math.abs(b.top - cp))[0];
+
+        // Draw exactly two lines to keep the chart clean
+        if (nearestSupply) {
           candleSeries.createPriceLine({
-             price: zone.top,
-             color: zone.type === 'supply' ? 'rgba(220, 38, 38, 0.5)' : 'rgba(22, 163, 74, 0.5)',
-             lineWidth: 1,
-             lineStyle: lc.LineStyle.Dashed,
-             axisLabelVisible: false,
-             title: zone.type === 'supply' ? 'Supply Top' : 'Demand Top'
-          });
-          candleSeries.createPriceLine({
-             price: zone.bottom,
-             color: zone.type === 'supply' ? 'rgba(220, 38, 38, 0.5)' : 'rgba(22, 163, 74, 0.5)',
+             price: nearestSupply.bottom,
+             color: 'rgba(220, 38, 38, 0.8)',
              lineWidth: 1,
              lineStyle: lc.LineStyle.Solid,
-             axisLabelVisible: false,
-             title: zone.type === 'supply' ? 'Supply Bottom' : 'Demand Bottom'
+             axisLabelVisible: true,
+             title: 'Supply'
           });
-        });
+        }
+        
+        if (nearestDemand) {
+          candleSeries.createPriceLine({
+             price: nearestDemand.top,
+             color: 'rgba(22, 163, 74, 0.8)',
+             lineWidth: 1,
+             lineStyle: lc.LineStyle.Solid,
+             axisLabelVisible: true,
+             title: 'Demand'
+          });
+        }
 
         // ─── EMA 50 ───────────────────────────
         if (ema50.length > 0) {
