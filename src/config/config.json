@@ -1,0 +1,14 @@
+{
+  "strategyName": "S&D + Liquidity Gaps + Sweeps + FVG (confluence)",
+  "timeframes": { "HTF": "Daily", "MTF": "4H", "LTF": "1H", "ETF": "15m" },
+  "detection": {
+    "fvg": { "lookbackCandles": 10, "minGapPct": 0.0002, "markTFs": ["4H","1H","15m"] },
+    "orderBlock": { "impulseThresholdPct": 0.005, "minImpulseCandles": 3, "markTFs": ["Daily","4H","1H"] },
+    "liquidityGap": { "minSizePips": 5, "markTFs": ["1H","15m"] },
+    "sweep": { "confirmationWindowCandles": 3, "wickBufferPct": 0.0003, "markTFs": ["4H","1H","15m"] },
+    "atrMultiplierStop": { "ETF": 1.0 }
+  },
+  "confluence": { "requireMin": 2, "priorityWeights": { "HTF_OB": 30, "MTF_FVG": 25, "LTF_gap": 15, "sweep": 30 } },
+  "risk": { "riskPerTradePct": 1.0, "dailyMaxPct": 3.0, "weeklyMaxPct": 8.0 },
+  "execution": { "slippageEstPct": 0.0001, "spreadThresholdPct": 0.0005 }
+}
