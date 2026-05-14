@@ -236,8 +236,8 @@ export default function ChartPage() {
         const nearestSupply = z.filter(zone => zone.type === 'supply').sort((a, b) => Math.abs(a.bottom - cp) - Math.abs(b.bottom - cp))[0];
         const nearestDemand = z.filter(zone => zone.type === 'demand').sort((a, b) => Math.abs(a.top - cp) - Math.abs(b.top - cp))[0];
 
-        // Draw exactly two lines to keep the chart clean
-       // ─── STRATEGY OVERLAYS (AUTO) ─────────────────────────
+        // Draw exactly two lines to keep the chart 
+// ─── STRATEGY OVERLAYS (AUTO) ─────────────────────────
 
 // Convert candles into detector format
 const detectorCandles = candles.map((c: OHLCV) => ({
@@ -263,6 +263,60 @@ const sweeps = detectSweeps(
   '15m'
 );
 
+// ===== FVG LINES (ONLY 2) =====
+fvgs.slice(-2).forEach((fvg) => {
+  candleSeries.createPriceLine({
+    price: fvg.top,
+    color: 'rgba(34,197,94,0.35)',
+    lineWidth: 1,
+    lineStyle: lc.LineStyle.Dashed,
+    axisLabelVisible: false,
+    title: 'FVG',
+  });
+
+  candleSeries.createPriceLine({
+    price: fvg.bottom,
+    color: 'rgba(34,197,94,0.35)',
+    lineWidth: 1,
+    lineStyle: lc.LineStyle.Dashed,
+    axisLabelVisible: false,
+  });
+});
+
+// ===== ORDER BLOCKS (ONLY 2) =====
+orderBlocks.slice(-2).forEach((ob) => {
+  candleSeries.createPriceLine({
+    price: ob.top,
+    color: 'rgba(59,130,246,0.45)',
+    lineWidth: 2,
+    lineStyle: lc.LineStyle.Solid,
+    axisLabelVisible: false,
+    title: 'OB',
+  });
+
+  candleSeries.createPriceLine({
+    price: ob.bottom,
+    color: 'rgba(59,130,246,0.45)',
+    lineWidth: 2,
+    lineStyle: lc.LineStyle.Solid,
+    axisLabelVisible: false,
+  });
+});
+
+// ===== SWEEP MARKERS (ONLY 5, NO TEXT) =====
+if (sweeps.length > 0) {
+  const recentSweeps = sweeps.slice(-5);
+
+  (candleSeries as any).setMarkers(
+    recentSweeps.map((s) => ({
+      time: (s.time / 1000) as lc.Time,
+      position: 'aboveBar',
+      color: '#FACC15',
+      shape: 'circle',
+      text: '',
+    }))
+  );
+}
 // ===== FVG LINES =====
 fvgs.slice(-5).forEach((fvg) => {
   candleSeries.createPriceLine({
