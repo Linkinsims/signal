@@ -11,6 +11,9 @@ import { generateForecast, generateForecastPoints, ForecastResult } from '@/lib/
 import { calculateRSI, calculateMACD, calculateEMA, calculateBollingerBands, calculateATR, OHLCV } from '@/lib/indicators';
 import { detectZones, Zone } from '@/lib/zones';
 import { detectDivergences, Divergence } from '@/lib/divergence';
+import { detectFVG } from '@/detectors/fvg';
+import { detectOrderBlocks } from '@/detectors/orderBlock';
+import { detectSweeps } from '@/detectors/sweep';
 import SignalCard from '@/components/signals/SignalCard';
 import ZonePanel from '@/components/zones/ZonePanel';
 import Link from 'next/link';
@@ -234,6 +237,84 @@ export default function ChartPage() {
         const nearestDemand = z.filter(zone => zone.type === 'demand').sort((a, b) => Math.abs(a.top - cp) - Math.abs(b.top - cp))[0];
 
         // Draw exactly two lines to keep the chart clean
+       // ─── STRATEGY OVERLAYS (AUTO) ─────────────────────────
+
+// Convert candles into detector format
+const detectorCandles = candles.map((c: OHLCV) => ({
+  t: c.time * 1000,
+  o: c.open,
+  h: c.high,
+  l: c.low,
+  c: c.close,
+  v: c.volume,
+}));
+
+// Run detectors
+const fvgs = detectFVG(detectorCandles, '1H');
+const orderBlocks = detectOrderBlocks(detectorCandles, '4H');
+
+const obLevels = orderBlocks.map(
+  (z) => (z.top + z.bottom) / 2
+);
+
+const sweeps = detectSweeps(
+  detectorCandles,
+  obLevels,
+  '15m'
+);
+
+// ===== FVG LINES =====
+fvgs.slice(-5).forEach((fvg) => {
+  candleSeries.createPriceLine({
+    price: fvg.top,
+    color: 'rgba(34,197,94,0.35)',
+    lineWidth: 1,
+    lineStyle: lc.LineStyle.Dashed,
+    axisLabelVisible: false,
+    title: 'FVG',
+  });
+
+  candleSeries.createPriceLine({
+    price: fvg.bottom,
+    color: 'rgba(34,197,94,0.35)',
+    lineWidth: 1,
+    lineStyle: lc.LineStyle.Dashed,
+    axisLabelVisible: false,
+  });
+});
+
+// ===== ORDER BLOCKS =====
+orderBlocks.slice(-4).forEach((ob) => {
+  candleSeries.createPriceLine({
+    price: ob.top,
+    color: 'rgba(59,130,246,0.45)',
+    lineWidth: 2,
+    lineStyle: lc.LineStyle.Solid,
+    axisLabelVisible: false,
+    title: 'OB',
+  });
+
+  candleSeries.createPriceLine({
+    price: ob.bottom,
+    color: 'rgba(59,130,246,0.45)',
+    lineWidth: 2,
+    lineStyle: lc.LineStyle.Solid,
+    axisLabelVisible: false,
+  });
+});
+
+// ===== SWEEP MARKERS =====
+if (sweeps.length > 0) {
+  candleSeries.setMarkers(
+    sweeps.map((s) => ({
+      time: (s.time / 1000) as lc.Time,
+      position: 'aboveBar',
+      color: '#FACC15',
+      shape: 'circle',
+      text: 'Sweep',
+    }))
+  );
+}
         if (nearestSupply) {
           candleSeries.createPriceLine({
              price: nearestSupply.bottom,
