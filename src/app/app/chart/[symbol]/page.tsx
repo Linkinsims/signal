@@ -392,10 +392,22 @@ if (sweeps.length > 0) {
           <div className="flex items-center gap-3 mb-1">
             <h1 className="text-2xl font-bold text-primary">{displayName}</h1>
             {signal && (
-              <span className={signal.type === 'LONG' ? 'badge-long' : signal.type === 'SHORT' ? 'badge-short' : 'badge-watch'}>
-                {signal.type}
-              </span>
-            )}
+  <span
+    className={`text-2xl font-bold ${
+      signal.type === 'LONG'
+        ? 'text-green-500'
+        : signal.type === 'SHORT'
+        ? 'text-red-500'
+        : 'text-gray-400'
+    }`}
+  >
+    {signal.type === 'LONG'
+      ? '↑'
+      : signal.type === 'SHORT'
+      ? '↓'
+      : '○'}
+  </span>
+)}
             {divergences.length > 0 && divergences.slice(-1)[0].endIndex >= (chartInstanceRef.current ? 490 : 0) && (
               <span className="badge-watch bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 capitalize">
                 {divergences.slice(-1)[0].type} Div
