@@ -357,16 +357,25 @@ orderBlocks.slice(-4).forEach((ob) => {
   });
 });
 
-// ===== SWEEP MARKERS =====
+// ===== SWEEP MARKERS (CLEAN) =====
 if (sweeps.length > 0) {
+  const recentSweeps = sweeps.slice(-5);
+
   candleSeries.setMarkers(
-    sweeps.map((s) => ({
-      time: (s.time / 1000) as lc.Time,
-      position: 'aboveBar',
-      color: '#FACC15',
-      shape: 'circle',
-      text: 'Sweep',
-    }))
+    recentSweeps.map((s) => {
+      const bullish =
+        s.direction === 'bullish' ||
+        s.type === 'bullish' ||
+        s.side === 'buy';
+
+      return {
+        time: (s.time / 1000) as lc.Time,
+        position: bullish ? 'belowBar' : 'aboveBar',
+        shape: bullish ? 'arrowUp' : 'arrowDown',
+        color: bullish ? '#22C55E' : '#EF4444',
+        text: '',
+      };
+    })
   );
 }
         if (nearestSupply) {
